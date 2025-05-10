@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadruped Robot Learning: Teaching a Robot Dog to Walk</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Quadruped Robot Walking in SIm</h1>
+            <p class="tagline">16-299 project</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#reinforcement-learning">Reinforcement Learning</a></li>
+                <li><a href="#hardcoded-gait">Hardcoded Gait</a></li>
+                <li><a href="#simulation">Robot Simulation</a></li>
+                <li><a href="#results">Results</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="overview">
+            <h2>Project Overview</h2>
+            <div class="content-with-image">
+                <div class="text-content">
+                    <p>The goal of this project was to simulate a robot walking in simulation. I planned to do this with two different approaches</p>
+                    <ul>
+                        <li><strong>Deep Q-Learning (DQN):</strong>A modified version of reinforcement that is suited to large actionn and state spaces. An agent explores an eviroment and gradually favors actions the give higher rewards</li>
+                        <li><strong>Hardcoded Walking Gait:</strong> specified times and joint inputs that results in the simulated dog moving </li>
+                    </ul>
+                </div>
+                <div class="image-placeholder">
+                    <div class="placeholder">
+                        [Robot Dog Simulation Image]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reinforcement-learning">
+            <h2>Reinforcement Learning Basics</h2>
+            <div class="content-with-image">
+                <div class="text-content">
+                    <p>Reinforcement Learning (RL) is a machine learning paradigm where an agent learns to make decisions by interacting with an environment. The agent takes actions, observes the results, and receives rewards or penalties.</p>
+                    
+                    <h3>Key RL Concepts:</h3>
+                    <ul>
+                        <li><strong>Agent:</strong> The decision-maker (our robot dog controller)</li>
+                        <li><strong>Environment:</strong> The world the agent interacts with (MuJoCo physics simulation)</li>
+                        <li><strong>State:</strong> The current situation (joint positions, velocities, etc.)</li>
+                        <li><strong>Action:</strong> Decisions the agent makes (motor commands)</li>
+                        <li><strong>Reward:</strong> Feedback signal indicating success (forward motion, stability)</li>
+                        <li><strong>Policy:</strong> The strategy the agent follows to select actions</li>
+                    </ul>
+                    
+                    <p>In our project, the agent learns to control 8 motors (2 per leg - hip and knee joints) to make the dog walk forward. The reward is primarily based on forward velocity, with penalties for excessive control effort and falling over.</p>
+                </div>
+                <div class="image-placeholder">
+                    <div class="placeholder">
+                        [RL Diagram]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="hardcoded-gait">
+            <h2>Hardcoded Walking Gait</h2>
+            <div class="content-with-image">
+                <div class="text-content">
+                    <p>To test the reweard function with something that I knew would work I implemented a hard coded walking gait</p>
+                    
+                    <h3>Gait Pattern Design:</h3>
+                    <p>For quadruped robots, various gait patterns are possible. I made a simple one that moves one leg up forwards then down then the other legs follow</p>
+                    <p>
+                        To calculate the joint angles, I used inverse kinematics the formauls are simular to a basic revolute revolute robot arm.
+                    </p>
+                    
+                    <h3>Hardcoded Control Approach:</h3>
+                    <ul>
+                        <li>Each leg follows a predefined trajectory for swing and stance phases</li>
+                        <li>After each of the phases the the legs have moved but the torso hasnt</li>
+                        <li>Robot center of mass is always above points of contact</li>
+                        <li>Legs are moved forward in unison</li>
+                    </ul>
+                    
+
+                </div>
+                <div class="image-placeholder">
+                    <div class="placeholder">
+                        [Gait Pattern Diagram]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulation">
+            <h2>Robot Simulation Environment</h2>
+            <div class="content-with-image">
+                <div class="text-content">
+                    <h3>MuJoCo Physics Engine</h3>
+                    <p>The simulation uses MuJoCo (Multi-Joint dynamics with Contact), a physics engine for detailed, efficient robot simulation. MuJoCo provides accurate modeling of contacts, joints, and dynamics.</p>
+                    
+                    <h3>Robot Model (dog.xml)</h3>
+                    <p>The quadruped dog robot is defined in the dog.xml file using MuJoCo's XML format. Key components include:</p>
+                    <ul>
+                        <li><strong>Body parts:</strong> Torso and 4 legs (each with thigh and shin)</li>
+                        <li><strong>Joints:</strong> 8 revolute joints (hip and knee for each leg)</li>
+                        <li><strong>Actuators:</strong> 8 motors to control each joint</li>
+                        <li><strong>Collision geometry:</strong> Capsules for legs and box for torso</li>
+                    </ul>
+                    
+                    <h3>Observation Space</h3>
+                    <p>The agent receives observations that include:</p>
+                    <ul>
+                        <li>Z-position (height)</li>
+                        <li>Orientation (quaternion)</li>
+                        <li>Joint positions (8 values)</li>
+                        <li>Root velocities (6 values)</li>
+                        <li>Joint velocities (8 values)</li>
+                    </ul>
+                    <p>Note: X and Y positions are excluded to make the policy position-invariant.</p>
+                </div>
+                <div class="image-placeholder">
+                    <div class="placeholder">
+                        [Robot Model Diagram]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="results">
+            <h2>Results and Comparison</h2>
+            <div class="content-with-image">
+                <div class="text-content">
+                    <h3>DQN vs. Hardcoded Gait Performance</h3>
+                    <p>Our experiments show different characteristics between the two approaches:</p>
+                    <ul>
+                        <li><strong>DQN:</strong> Learned to adapt to the environment but required significant training time</li>
+                        <li><strong>Hardcoded Gait:</strong> Immediate functionality but limited adaptability to varying conditions</li>
+                    </ul>
+                    
+                    <h3>Performance Comparison</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Aspect</th>
+                            <th>DQN</th>
+                            <th>Hardcoded Gait</th>
+                        </tr>
+                        <tr>
+                            <td>Development Time</td>
+                            <td>Longer (training required)</td>
+                            <td>Shorter (manual tuning)</td>
+                        </tr>
+                        <tr>
+                            <td>Adaptability</td>
+                            <td>Better (learns from experience)</td>
+                            <td>Limited (fixed patterns)</td>
+                        </tr>
+                        <tr>
+                            <td>Energy Efficiency</td>
+                            <td>Varies (improves with training)</td>
+                            <td>Consistent (designed for efficiency)</td>
+                        </tr>
+                        <tr>
+                            <td>Gait Stability</td>
+                            <td>Improves over time</td>
+                            <td>Fixed (limited recovery ability)</td>
+                        </tr>
+                    </table>
+                    
+                    <h3>Walking Patterns</h3>
+                    <p>Analysis of the robot's walking path shows:</p>
+                    <ul>
+                        <li>DQN develops interesting, sometimes unexpected movement strategies</li>
+                        <li>Hardcoded gait produces more predictable, uniform movements</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+ 
+    </main>
+
+
+</body>
+</html> 
